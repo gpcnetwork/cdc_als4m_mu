@@ -3,7 +3,6 @@ select * from ALS_CASE_TABLE1;
 select * from DM_TABLE1;
 select * from GLP1_EVENT_LONG;
 
-
 CREATE OR REPLACE TABLE PAT_YEAR_ALL AS
     WITH RECURSIVE pat_year_expansion AS 
     (
@@ -96,189 +95,478 @@ CREATE OR REPLACE TABLE XWALK_YEAR_ALL AS
     order by patid, year
 ;
 
-/* table 1 - overall */
-create or replace temporary table pat_overall as
-select year, count(distinct patid) as pat_cnt 
+
+
+
+/* collect annual summaries - per-source*/
+
+create or replace table patcnt_long (
+    CALYR int, 
+    DATA_SRC varchar(4),
+    PAT_CNT_TYPE varchar(30),
+    PAT_CNT int
+)
+;
+
+-- denominators
+insert into patcnt_long
+select year, 'MIX', 'ALL', count(distinct patid)
 from PAT_YEAR_ALL
 group by year
 union 
-select 9999, count(distinct patid) as pat_cnt 
+select 9999, 'MIX', 'ALL', count(distinct patid)
 from PAT_YEAR_ALL
-order by year
-;
-
-
-select year, count(distinct patid) as pat_cnt 
-from EHR_YEAR_ALL
-group by year
 union 
-select 9999, count(distinct patid) as pat_cnt 
-from EHR_YEAR_ALL
-order by year
-;
-
-
-select year, count(distinct patid) as pat_cnt 
-from PARTD_YEAR_ALL
-group by year
-union 
-select 9999, count(distinct patid) as pat_cnt 
-from PARTD_YEAR_ALL
-order by year
-;
-
-
-select year, count(distinct patid) as pat_cnt 
+select year, 'MIX', 'XWALK', count(distinct patid)
 from XWALK_YEAR_ALL
 group by year
 union 
-select 9999, count(distinct patid) as pat_cnt 
+select 9999, 'MIX', 'XWALK', count(distinct patid)
 from XWALK_YEAR_ALL
-order by year
+union
+select year, 'EHR', 'ALL', count(distinct patid) 
+from EHR_YEAR_ALL
+group by year
+union 
+select 9999, 'EHR', 'ALL', count(distinct patid)
+from EHR_YEAR_ALL
+union 
+select year, 'CMS', 'ALL', count(distinct patid)
+from PARTD_YEAR_ALL
+group by year
+union 
+select 9999, 'CMS', 'ALL', count(distinct patid)
+from PARTD_YEAR_ALL
 ;
 
-
-/* table 1 - DM  */
-
-select a.year, count(distinct a.patid) as pat_cnt 
+-- DM, non-DM, T1DM, T2DM
+insert into patcnt_long
+select a.year, 'MIX', 'DM', count(distinct a.patid)
 from PAT_YEAR_ALL a 
 where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
+select 9999, 'MIX', 'DM',  count(distinct a.patid)
 from PAT_YEAR_ALL a 
 where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
+union
+select a.year, 'MIX', 'T2DM', count(distinct a.patid)
+from PAT_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'MIX', 'T2DM', count(distinct a.patid) 
+from PAT_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 0)
+union 
+select a.year, 'MIX', 'T1DM', count(distinct a.patid) 
+from PAT_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'MIX', 'T1DM', count(distinct a.patid) 
+from PAT_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 1)
+union 
+select a.year, 'EHR','DM', count(distinct a.patid) 
 from EHR_YEAR_ALL a 
-where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+where exists (select 1 from DM_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
+select 9999, 'EHR','DM', count(distinct a.patid)
 from EHR_YEAR_ALL a 
-where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+where exists (select 1 from DM_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+union
+select a.year, 'EHR', 'T2DM', count(distinct a.patid)
+from EHR_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 0)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+select 9999, 'EHR', 'T2DM', count(distinct a.patid) 
+from EHR_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 0)
+union 
+select a.year, 'EHR', 'T1DM', count(distinct a.patid) 
+from EHR_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 1)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from DM_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
+select 9999, 'EHR', 'T1DM', count(distinct a.patid) 
+from EHR_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 1)
+union
+select a.year, 'CMS', 'DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'CMS', 'DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+union
+select a.year, 'CMS', 'T2DM', count(distinct a.patid)
+from PARTD_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'CMS', 'T2DM', count(distinct a.patid) 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 0)
+union 
+select a.year, 'CMS', 'T1DM', count(distinct a.patid) 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'CMS', 'T1DM', count(distinct a.patid) 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from DM_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year and b.t1dm_ind = 1)
 ;
 
 
-/* table 1 - ALS */
--- prevalence
-select a.year, count(distinct a.patid) as pat_cnt 
+-- ALS, new ALS
+insert into patcnt_long
+select a.year, 'MIX', 'ALS', count(distinct a.patid)
 from PAT_YEAR_ALL a 
 where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
+select 9999, 'MIX', 'ALS', count(distinct a.patid)
 from PAT_YEAR_ALL a 
 where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
--- incidence
-select a.year, count(distinct a.patid) as pat_cnt 
+select a.year, 'MIX', 'newALS', count(distinct a.patid) as pat_cnt 
 from PAT_YEAR_ALL a 
 where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
+select 9999, 'MIX', 'newALS', count(distinct a.patid) as pat_cnt 
 from PAT_YEAR_ALL a 
 where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
+union
+select a.year, 'EHR', 'ALS', count(distinct a.patid)
 from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
+select 9999, 'EHR', 'ALS', count(distinct a.patid)
 from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+union
+select a.year, 'EHR', 'newALS', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
+select 9999, 'EHR', 'newALS', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+union
+select a.year, 'CMS', 'ALS', count(distinct a.patid)
 from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
 group by a.year
 union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-order by year
+select 9999, 'CMS', 'ALS', count(distinct a.patid)
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+union
+select a.year, 'CMS', 'newALS', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'CMS', 'newALS', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
 ;
+
+-- ALS+DM, ALS+T2DM, ALS+T1DM, newALS+DM, newALS+T2DM, newALS+T1DM
+insert into patcnt_long
+select a.year, 'MIX','ALS_DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX','ALS_DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union
+select a.year, 'MIX','ALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'MIX','ALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+union 
+select a.year, 'MIX','ALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'MIX','ALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+union
+select a.year, 'EHR', 'ALS_DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'EHR', 'ALS_DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year)
+union
+select a.year, 'EHR','ALS_T2DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'EHR','ALS_T2DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+union 
+select a.year, 'EHR','ALS_T1DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'EHR','ALS_T1DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+union
+select a.year, 'CMS', 'ALS_DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'CMS', 'ALS_DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year)
+union
+select a.year, 'CMS','ALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'CMS','ALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+union 
+select a.year, 'CMS','ALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'CMS','ALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+union
+select a.year, 'MIX', 'newALS_DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX', 'newALS_DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union
+select a.year, 'MIX','newALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'MIX','newALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+union 
+select a.year, 'MIX','newALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'MIX','newALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+union
+select a.year, 'EHR', 'newALS_DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'EHR', 'newALS_DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year)
+union
+select a.year, 'EHR','newALS_T2DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'EHR','newALS_T2DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+union 
+select a.year, 'EHR','newALS_T1DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'EHR','newALS_T1DM', count(distinct a.patid) as pat_cnt 
+from EHR_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_EHR b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_EHR d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+union
+select a.year, 'CMS', 'newALS_DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'CMS', 'newALS_DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year)
+union
+select a.year, 'CMS','newALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+group by a.year
+union 
+select 9999, 'CMS','newALS_T2DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 0)
+union 
+select a.year, 'CMS','newALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+group by a.year
+union 
+select 9999, 'CMS','newALS_T1DM', count(distinct a.patid) as pat_cnt 
+from PARTD_YEAR_ALL a 
+where exists (select 1 from ALS_INC_CASE_TABLE1_CMS b where a.patid = b.patid and year(b.index_date)<=a.year)
+    and exists (select 1 from DM_TABLE1_CMS d where a.patid = d.patid and year(d.index_date)<=a.year and d.t1dm_ind = 1)
+;
+
+-- DM + GLP1
+insert into patcnt_long
+select a.year, 'MIX', 'DM_GLP1', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX', 'DM_GLP1', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union 
+select a.year, 'MIX', 'DM_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX', 'DM_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union 
+select a.year, 'MIX', 'DM_GLP1_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX', 'DM_GLP1_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union 
+--
+select a.year, 'EHR', 'DM_GLP1', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX', 'DM_GLP1', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union 
+select a.year, 'MIX', 'DM_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX', 'DM_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union 
+select a.year, 'MIX', 'DM_GLP1_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+group by a.year
+union 
+select 9999, 'MIX', 'DM_GLP1_DPP4', count(distinct a.patid) as pat_cnt 
+from PAT_YEAR_ALL a 
+where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
+    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+union 
+;
+
+select * from patcnt_long limit 5;
 
 /* standardized population: census */
 select * from REF_ACS_SEXBYAGE;
 
+create or replace table adj_wt (
+    CALYR int, 
+    DATA_SRC varchar(4),
+    WT_TYPE varchar(10),
+    WT number
+)
+;
+
+insert into adj_wt (calyr, data_src, wt_type, wt)
 with denom_cte as (
     select  distinct
             a.patid, 
@@ -316,6 +604,8 @@ with denom_cte as (
     from denom_cte 
 )
 select n.year,
+       'MIX',
+       ''
        CAST(n.num/d.denom AS NUMBER(20,15)) as prev_adj
 from num_yr_cte n
 join denom_yr_cte d 
@@ -323,191 +613,39 @@ on n.year = d.year
 order by year
 ;
 
-/* table 1 - ALS + DM*/
--- prevalence
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
-;
 
-select a.year, count(distinct a.patid) as pat_cnt 
-from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
-;
-
--- incidence
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from EHR_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PARTD_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
-;
-
-select a.year, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from XWALK_YEAR_ALL a 
-where exists (select 1 from ALS_INC_CASE_TABLE1 b where a.patid = b.patid and year(b.index_date)<=a.year)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-order by year
+create or replace table 
+select * 
+from patcnt_long
+pivot 
+(
+    max(pat_cnt) for 
+    pat_cnt_type in (any order by pat_cnt_type)
+)
+order by calyr
 ;
 
 
 
-/* table 2 - GLP1  */
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
-order by year
-;
 
-/* table 2 - DPP4  */
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
-order by year
-;
 
-/* table 2 - either  */
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
-order by year
-;
+
+
+
 
 
 /* table 2 - DM+GLP1  */
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.glp1_start_date is not null)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+
 order by year
 ;
 
 /* table 2 - DM+DPP4  */
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid and b.dpp4_start_date is not null)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+
 order by year
 ;
 
 /* table 2 - DM+either  */
-select a.year, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
-group by a.year
-union 
-select 9999, count(distinct a.patid) as pat_cnt 
-from PAT_YEAR_ALL a 
-where exists (select 1 from GLP1_DPP4_TABLE1 b where a.patid = b.patid)
-    and exists (select 1 from DM_TABLE1 d where a.patid = d.patid and year(d.index_date)<=a.year)
+
 order by year
 ;
 

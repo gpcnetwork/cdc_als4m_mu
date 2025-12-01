@@ -143,6 +143,12 @@ call get_dm_event_long(
 select count(*), count(distinct patid) from DM_EVENT_LONG;
 --8272261
 
+select * from DM_EVENT_LONG limit 5;
+select * from GROUSE_DB.CMS_PCORNET_CDM.DEID_ENROLLMENT where raw_basis like '%C%' limit 5;
+
+select distinct event_type from DM_EVENT_LONG;
+
+/* EHR + CMS */
 create or replace table DM_TABLE1 as
 with cte_ord as (
     select patid, 
@@ -162,6 +168,10 @@ with cte_ord as (
     from DM_EVENT_LONG
     where event_type = 'DX'
     group by patid
+), cte_t1dm as (
+    select distinct patid, 1 as T1DM_IND
+    from DM_EVENT_LONG
+    where event_val like 'E10%' or event_val like '250.%1%'
 )
 select a.patid 
       ,b.birth_date
@@ -176,9 +186,11 @@ select a.patid
       ,a.distinct_event_cnt
       ,a.distinct_date_cnt
       ,a.event_str
+      ,coalesce(t1.T1DM_IND,0) as T1DM_IND
 from cte_ord a 
 join PAT_TABLE1 b on a.patid = b.patid
 join cte_dx1 c on a.patid = c.patid
+left join cte_t1dm t1 on a.patid = t1.patid
 where a.rn = 1 and b.birth_date is not null
       and a.distinct_date_cnt > 2  -- required at least another assertainment event at different time
       and a.event_str like '%DX%'  -- at least 1 confirmed diagnosis
@@ -188,4 +200,124 @@ select * from DM_TABLE1 limit 5;
 select count(*), count(distinct patid) from DM_TABLE1;
 -- 6,252,886
 
-select * from DM_TABLE1 limit 5;
+select T1DM_IND, count(*), count(distinct patid) from DM_TABLE1
+group by T1DM_IND;
+-- 1	1184207
+-- 0	5068679
+
+
+
+/* EHR only */
+create or replace table DM_TABLE1_EHR as
+with cte_ord as (
+    select patid, 
+           event_type,
+           event_date,
+           age_at_event,
+           event_src,
+           count(distinct event_val) over (partition by patid) as distinct_event_cnt,
+           count(distinct event_date) over (partition by patid) as distinct_date_cnt,
+           listagg(distinct event_type || event_val, '|') within group (order by event_type || event_val) over (partition by patid) as event_str,
+        --    listagg(distinct event_type, '|') within group (order by event_type) over (partition by patid) as event_str,
+           row_number() over (partition by patid order by event_date) as rn
+    from DM_EVENT_LONG
+    where event_src <> 'CMS'
+), cte_dx1 as(
+    select patid,
+           min(event_date) as dm1dx_date
+    from DM_EVENT_LONG 
+    where event_type = 'DX' and event_src <> 'CMS'
+    group by patid
+), cte_t1dm as (
+    select distinct patid, 1 as T1DM_IND
+    from DM_EVENT_LONG 
+    where (event_val like 'E10%' or event_val like '250.%1%') and event_src <> 'CMS'
+)
+select a.patid 
+      ,b.birth_date
+      ,b.sex
+      ,b.race 
+      ,b.hispanic
+      ,c.dm1dx_date
+      ,a.event_type as index_event
+      ,a.event_date as index_date
+      ,a.age_at_event as age_at_index
+      ,a.event_src as index_src
+      ,a.distinct_event_cnt
+      ,a.distinct_date_cnt
+      ,a.event_str
+      ,coalesce(t1.T1DM_IND,0) as T1DM_IND
+from cte_ord a 
+join PAT_TABLE1 b on a.patid = b.patid
+join cte_dx1 c on a.patid = c.patid
+left join cte_t1dm t1 on a.patid = t1.patid
+where a.rn = 1 and b.birth_date is not null
+      and a.distinct_date_cnt > 2  -- required at least another assertainment event at different time
+      and a.event_str like '%DX%'  -- at least 1 confirmed diagnosis
+;
+
+select count(*), count(distinct patid) from DM_TABLE1_EHR;
+-- 1,399,897
+
+select T1DM_IND, count(*), count(distinct patid) from DM_TABLE1_EHR
+group by T1DM_IND;
+-- 1	287613	287613
+-- 0	1112284	1112284
+
+/* CMS only */
+create or replace table DM_TABLE1_CMS as
+with cte_ord as (
+    select patid, 
+           event_type,
+           event_date,
+           age_at_event,
+           event_src,
+           count(distinct event_val) over (partition by patid) as distinct_event_cnt,
+           count(distinct event_date) over (partition by patid) as distinct_date_cnt,
+           listagg(distinct event_type || event_val, '|') within group (order by event_type || event_val) over (partition by patid) as event_str,
+        --    listagg(distinct event_type, '|') within group (order by event_type) over (partition by patid) as event_str,
+           row_number() over (partition by patid order by event_date) as rn
+    from DM_EVENT_LONG
+    where event_src = 'CMS'
+), cte_dx1 as(
+    select patid,
+           min(event_date) as dm1dx_date
+    from DM_EVENT_LONG 
+    where event_type = 'DX' and event_src = 'CMS'
+    group by patid
+), cte_t1dm as (
+    select distinct patid, 1 as T1DM_IND
+    from DM_EVENT_LONG 
+    where (event_val like 'E10%' or event_val like '250.%1%') and event_src = 'CMS'
+)
+select a.patid 
+      ,b.birth_date
+      ,b.sex
+      ,b.race 
+      ,b.hispanic
+      ,c.dm1dx_date
+      ,a.event_type as index_event
+      ,a.event_date as index_date
+      ,a.age_at_event as age_at_index
+      ,a.event_src as index_src
+      ,a.distinct_event_cnt
+      ,a.distinct_date_cnt
+      ,a.event_str
+      ,coalesce(t1.T1DM_IND,0) as T1DM_IND
+from cte_ord a 
+join PAT_TABLE1 b on a.patid = b.patid
+join cte_dx1 c on a.patid = c.patid
+left join cte_t1dm t1 on a.patid = t1.patid
+where a.rn = 1 and b.birth_date is not null
+      and a.distinct_date_cnt > 2  -- required at least another assertainment event at different time
+      and a.event_str like '%DX%'  -- at least 1 confirmed diagnosis
+;
+
+select count(*), count(distinct patid) from DM_TABLE1_CMS;
+-- 1,399,897
+
+select T1DM_IND, count(*), count(distinct patid) from DM_TABLE1_CMS
+group by T1DM_IND;
+-- 1	287613	287613
+-- 0	1112284	1112284
+
