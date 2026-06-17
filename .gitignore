@@ -1,6 +1,9 @@
 # virtual environments
 *venv/
 
+# security risk
+uv.lock
+
 # byte-compiled / cached files
 *__pycache__/
 
@@ -8,6 +11,7 @@
 .env*
 .config*
 *.Rhistory
+.python*
 
 # any data files
 *data/

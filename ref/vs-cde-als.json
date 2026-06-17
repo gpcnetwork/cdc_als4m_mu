@@ -3,8 +3,8 @@
         "id": "C20000",
         "name": "alsfrsr",
         "description": "presence of a record of amyotrophic lateral sclerosis functional rating scale - revised [ALSFRS-R]",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -31,8 +31,8 @@
         "id": "C20001",
         "name": "alsfrsrQ1Speech",
         "description": "revised ALS functional rating scale - speech",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -41,7 +41,12 @@
                 "1": "Speech combined with nonvocal communication",
                 "2": "Intelligible with repeating",
                 "3": "Detectable speech disturbance",
-                "4": "Normal speech processes"
+                "4": "Normal speech processes",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -51,8 +56,7 @@
                     "concept": [
                         {
                             "code": "82940-8",
-                            "display": "Speech [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Speech [ALSFRS-R]"
                         }
                     ]
                 }
@@ -63,8 +67,8 @@
         "id": "C20002",
         "name": "alsfrsrQ2Salivation",
         "description": "revised ALS functional rating scale - salivation",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -73,7 +77,12 @@
                 "1": "Marked excess of saliva with some drooling",
                 "2": "Moderately excessive saliva; may have minimal drooling",
                 "3": "Slight but definite excess of saliva in mouth; may have nighttime drooling",
-                "4": "Normal"
+                "4": "Normal",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -83,8 +92,7 @@
                     "concept": [
                         {
                             "code": "82941-6",
-                            "display": "Salivation [ALSFRS-R]",
-                            "op": "[,3]"                            
+                            "display": "Salivation [ALSFRS-R]"
                         }
                     ]
                 }
@@ -95,8 +103,8 @@
         "id": "C20003",
         "name": "alsfrsrQ3Swallowing",
         "description": "revised ALS functional rating scale - swallowing",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -105,7 +113,12 @@
                 "1": "Needs supplemental tube feeding",
                 "2": "Dietary consistency changes",
                 "3": "Early eating problems - occasional choking",
-                "4": "Normal eating habits"
+                "4": "Normal eating habits",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -115,8 +128,7 @@
                     "concept": [
                         {
                             "code": "82942-4",
-                            "display": "Swallowing [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Swallowing [ALSFRS-R]"
                         }
                     ]
                 }
@@ -127,8 +139,8 @@
         "id": "C20004",
         "name": "alsfrsrQ4Handwriting",
         "description": "revised ALS functional rating scale - handwriting",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -137,7 +149,12 @@
                 "1": "Able to grip pen but unable to write",
                 "2": "Not all words are legible",
                 "3": "Slow or sloppy, all words are legible",
-                "4": "Normal"
+                "4": "Normal",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -147,8 +164,7 @@
                     "concept": [
                         {
                             "code": "82943-2",
-                            "display": "Handwriting [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Handwriting [ALSFRS-R]"
                         }
                     ]
                 }
@@ -159,8 +175,8 @@
         "id": "C20005",
         "name": "alsfrsrQ5CuttingWo",
         "description": "revised ALS functional rating scale - cutting food and handling utensils (patients without gastronomy)",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -169,7 +185,12 @@
                 "1": "Food must be cut by someone, but can still feed slowly",
                 "2": "Can cut most foods, although clumsy and slow; some help needed",
                 "3": "Somewhat slow and clumsy, but no help needed",
-                "4": "Normal"
+                "4": "Normal",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -179,8 +200,7 @@
                     "concept": [
                         {
                             "code": "82944-0",
-                            "display": "Cutting food and handling utensils (patients without gastrostomy) [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Cutting food and handling utensils (patients without gastrostomy) [ALSFRS-R]"
                         }
                     ]
                 }
@@ -191,8 +211,8 @@
         "id": "C20006",
         "name": "alsfrsrQ5CuttingW",
         "description": "revised ALS functional rating scale - cutting food and handling utensils (patients with gastronomy)",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -201,7 +221,12 @@
                 "1": "Provides minimal assistance to caregiver",
                 "2": "Some help needed with closures and fasteners",
                 "3": "Clumsy but able to perform all manipulations independently",
-                "4": "Normal"
+                "4": "Normal",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -211,8 +236,7 @@
                     "concept": [
                         {
                             "code": "82945-7",
-                            "display": "Cutting food and handling utensils (patients with gastrostomy) [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Cutting food and handling utensils (patients with gastrostomy) [ALSFRS-R]"
                         }
                     ]
                 }
@@ -223,8 +247,8 @@
         "id": "C20007",
         "name": "alsfrsrQ6Dressing",
         "description": "revised ALS functional rating scale - dressing and hygiene",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -233,7 +257,12 @@
                 "1": "Needs attendant for self-care",
                 "2": "Intermittent assistance or substitute methods",
                 "3": "Independent and complete self-care with effort or decreased efficiency",
-                "4": "Normal function"
+                "4": "Normal function",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -254,8 +283,8 @@
         "id": "C20008",
         "name": "alsfrsrQ7Turning",
         "description": "revised ALS functional rating scale - turning in bed and adjusting bed clothes",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -264,7 +293,12 @@
                 "1": "Can initiate, but not turn or adjust sheets alone",
                 "2": "Can turn alone or adjust sheets, but with great difficulty",
                 "3": "Somewhat slow and clumsy, but no help needed",
-                "4": "Normal"
+                "4": "Normal",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -274,8 +308,7 @@
                     "concept": [
                         {
                             "code": "82947-3",
-                            "display": "Turning in bed and adjusting bed clothes [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Turning in bed and adjusting bed clothes [ALSFRS-R]"
                         }
                     ]
                 }
@@ -286,8 +319,8 @@
         "id": "C20009",
         "name": "alsfrsrQ8Walking",
         "description": "revised ALS functional rating scale - walking",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -296,7 +329,12 @@
                 "1": "Nonambulatory functional movement",
                 "2": "Walks with assistance",
                 "3": "Early ambulation difficulties",
-                "4": "Normal"
+                "4": "Normal",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -306,8 +344,7 @@
                     "concept": [
                         {
                             "code": "82948-1",
-                            "display": "Walking [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Walking [ALSFRS-R]"
                         }
                     ]
                 }
@@ -318,8 +355,8 @@
         "id": "C20010",
         "name": "alsfrsrQ9Climbing",
         "description": "revised ALS functional rating scale - climbing stairs",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -328,7 +365,12 @@
                 "1": "Nonambulatory functional movement",
                 "2": "Walks with assistance",
                 "3": "Early ambulation difficulties",
-                "4": "Normal"
+                "4": "Normal",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -338,8 +380,7 @@
                     "concept": [
                         {
                             "code": "82948-1",
-                            "display": "Walking [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Walking [ALSFRS-R]"
                         }
                     ]
                 }
@@ -350,8 +391,8 @@
         "id": "C20011",
         "name": "alsfrsrQ10Dyspnea",
         "description": "revised ALS functional rating scale - dyspnea",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -360,7 +401,12 @@
                 "1": "Occurs at rest, difficulty breathing when either sitting or lying",
                 "2": "Occurs with one or more of the following: eating, bathing, dressing (ADL)",
                 "3": "Occurs when walking",
-                "4": "None"
+                "4": "None",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -370,8 +416,7 @@
                     "concept": [
                         {
                             "code": "82950-7",
-                            "display": "Dyspnea [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Dyspnea [ALSFRS-R]"
                         }
                     ]
                 }
@@ -382,8 +427,8 @@
         "id": "C20012",
         "name": "alsfrsrQ10Dyspnea",
         "description": "revised ALS functional rating scale - dyspnea",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -392,7 +437,12 @@
                 "1": "Occurs at rest, difficulty breathing when either sitting or lying",
                 "2": "Occurs with one or more of the following: eating, bathing, dressing (ADL)",
                 "3": "Occurs when walking",
-                "4": "None"
+                "4": "None",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -402,8 +452,7 @@
                     "concept": [
                         {
                             "code": "82950-7",
-                            "display": "Dyspnea [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Dyspnea [ALSFRS-R]"
                         }
                     ]
                 }
@@ -414,8 +463,8 @@
         "id": "C20013",
         "name": "alsfrsrQ11Orthopnea",
         "description": "revised ALS functional rating scale - orthopnea",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -424,7 +473,12 @@
                 "1": "Can only sleep sitting up",
                 "2": "Needs extra pillows in order to sleep (more than two)",
                 "3": "Some difficulty sleeping at night due to shortness of breath, does not routinely use more than two pillows",
-                "4": "None"
+                "4": "None",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -434,8 +488,7 @@
                     "concept": [
                         {
                             "code": "82951-5",
-                            "display": "Orthopnea [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Orthopnea [ALSFRS-R]"
                         }
                     ]
                 }
@@ -446,8 +499,8 @@
         "id": "C20014",
         "name": "alsfrsrQ12Respiratory",
         "description": "revised ALS functional rating scale - respiratory insufficiency",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -456,7 +509,12 @@
                 "1": "Continuous use of BiPAP during the night and day",
                 "2": "Continuous use of BiPAP during the night",
                 "3": "Intermittent use of BiPAP",
-                "4": "None"
+                "4": "None",
+                "low": {
+                    "value": 3,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -466,8 +524,7 @@
                     "concept": [
                         {
                             "code": "82952-3",
-                            "display": "Respiratory insufficiency [ALSFRS-R]",
-                            "op": "[,3]"
+                            "display": "Respiratory insufficiency [ALSFRS-R]"
                         }
                     ]
                 }
@@ -478,8 +535,8 @@
         "id": "C20015",
         "name": "alsfrsrRespType",
         "description": "revised ALS functional rating scale - respondent type",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "nominal",
@@ -506,14 +563,19 @@
         "id": "C20016",
         "name": "alsfrsrTotal",
         "description": "revised ALS functional rating scale - total score",
-        "purpose": "functional outcomes",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "discrete",
             "valueRange": {
                 "min": 0,
-                "max": 48
+                "max": 48,
+                "low": {
+                    "value": 30,
+                    "unit": "",
+                    "incld": 0
+                }
             }
         },
         "compose": {
@@ -523,8 +585,7 @@
                     "concept": [
                         {
                             "code": "82953-1",
-                            "display": "Total score [ALSFRS-R]",
-                            "op": "[,47]"
+                            "display": "Total score [ALSFRS-R]"
                         }
                     ]
                 }
@@ -535,14 +596,19 @@
         "id": "C10172",
         "name": "ForcedVitalCapacityResltVal",
         "description": "Value of the Forced Vital Capacity (FVC), in liters, as the maximum volume of air that can be exhaled as rapidly, forcefully, and completely as possible from the point of maximal inhalation",
-        "purpose": "pulmonary function testing/respiratory status",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "physiological markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "integer",
             "valueRange": {
                 "min": 0,
-                "max": 10
+                "max": 10,
+                "low": {
+                    "value": 5,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -552,13 +618,11 @@
                     "concept": [
                         {
                             "code": "19868-9",
-                            "display": "forced vital capacity [volume] measured by spirometry",
-                            "op": "[,5]"
+                            "display": "forced vital capacity [volume] measured by spirometry"
                         },
                         {
                             "code": "19870-5",
-                            "display": "forced vital capacity [volume] general",
-                            "op": "[,5]"
+                            "display": "forced vital capacity [volume] general"
                         }
                     ]
                 }
@@ -569,14 +633,19 @@
         "id": "C10177",
         "name": "SlowVitalCapPcntPredctdNormVal",
         "description": "percentage of the predicted normal value of Slow Vital Capacity (sVC) to grade the severity of the abnormality",
-        "purpose": "pulmonary function testing/respiratory status",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "physiological markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "integer",
             "valueRange": {
                 "min": 0,
-                "max": 10
+                "max": 10,
+                "low": {
+                    "value": 5,
+                    "unit": "",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -586,13 +655,11 @@
                     "concept": [
                         {
                             "code": "19866-3",
-                            "display": "vital capacity [volume] measured by spirometry",
-                            "op": "[,5]"
+                            "display": "vital capacity [volume] measured by spirometry"
                         },
                         {
                             "code": "19867-1",
-                            "display": "vital capacity [volume] general",
-                            "op": "[,5]"
+                            "display": "vital capacity [volume] general"
                         }
                     ]
                 }
@@ -603,15 +670,19 @@
         "id": "C20017",
         "name": "fvcPercent",
         "description": "forced vital capacity (percent of predicted normal value)",
-        "purpose": "pulmonary function testing/respiratory status",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "physiological markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "integer",
             "valueRange": {
                 "min": 0,
                 "max": 150,
-                "low": {"value":90,"unit":"%","incld":1}
+                "low": {
+                    "value": 90,
+                    "unit": "%",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -621,8 +692,7 @@
                     "concept": [
                         {
                             "code": "19872-1",
-                            "display": "FVC measured/predicted",
-                            "op": "[,90]"
+                            "display": "FVC measured/predicted"
                         }
                     ]
                 }
@@ -633,15 +703,19 @@
         "id": "C20018",
         "name": "svcPercent",
         "description": "slow vital capacity (percent of predicted normal value)",
-        "purpose": "pulmonary function testing/respiratory status",
-        "topic": "outcomes and endpoints",
+        "topic": "finding",
+        "purpose": "physiological markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "integer",
             "valueRange": {
                 "min": 0,
                 "max": 150,
-                "low": {"value":90,"unit":"%","incld":1}
+                "low": {
+                    "value": 90,
+                    "unit": "%",
+                    "incld": 1
+                }
             }
         },
         "compose": {
@@ -662,14 +736,15 @@
         "id": "C10974",
         "name": "ManualMuscleTestScore",
         "description": "",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
-            "valueType": "boolean",
+            "valueType": "nominal",
             "valueRange": {
-                "0": "absence",
-                "1": "presence"
+                "LA46-8": "Other",
+                "LA25264-5": "Decreased muscle strength",
+                "LA25085-4": "Within Defined Limits"
             }
         },
         "compose": {
@@ -690,8 +765,8 @@
         "id": "C20019",
         "name": "ManualMuscleTestScoreSABDLeft",
         "description": "Manual Muscle Testing (MMT) for left shoulder abduction",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -735,8 +810,8 @@
         "id": "C20020",
         "name": "ManualMuscleTestScoreSABDRight",
         "description": "Manual Muscle Testing (MMT) for right shoulder abduction",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -780,8 +855,8 @@
         "id": "C20021",
         "name": "ManualMuscleTestScoreSFLeft",
         "description": "Manual Muscle Testing (MMT) for left shoulder flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -825,8 +900,8 @@
         "id": "C20022",
         "name": "ManualMuscleTestScoreSFRight",
         "description": "Manual Muscle Testing (MMT) for right shoulder flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -870,8 +945,8 @@
         "id": "C20023",
         "name": "ManualMuscleTestScoreEFLeft",
         "description": "Manual Muscle Testing (MMT) for left elbow flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -915,8 +990,8 @@
         "id": "C20024",
         "name": "ManualMuscleTestScoreEELeft",
         "description": "Manual Muscle Testing (MMT) for left elbow extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -960,8 +1035,8 @@
         "id": "C20025",
         "name": "ManualMuscleTestScoreEFRight",
         "description": "Manual Muscle Testing (MMT) for right elbow flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -993,8 +1068,8 @@
         "id": "C20026",
         "name": "ManualMuscleTestScoreEERight",
         "description": "Manual Muscle Testing (MMT) for right elbow extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1038,8 +1113,8 @@
         "id": "C20027",
         "name": "ManualMuscleTestScoreHFLeft",
         "description": "Manual Muscle Testing (MMT) for left hip flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1083,8 +1158,8 @@
         "id": "C20028",
         "name": "ManualMuscleTestScoreHELeft",
         "description": "Manual Muscle Testing (MMT) for left hip extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1128,8 +1203,8 @@
         "id": "C20029",
         "name": "ManualMuscleTestScoreHABDLeft",
         "description": "Manual Muscle Testing (MMT) for left hip abduction",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1173,8 +1248,8 @@
         "id": "C20030",
         "name": "ManualMuscleTestScoreHADDLeft",
         "description": "Manual Muscle Testing (MMT) for left hip adduction",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1218,8 +1293,8 @@
         "id": "C20031",
         "name": "ManualMuscleTestScoreHERLeft",
         "description": "Manual Muscle Testing (MMT) for left hip external rotation",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1263,8 +1338,8 @@
         "id": "C20032",
         "name": "ManualMuscleTestScoreHFRight",
         "description": "Manual Muscle Testing (MMT) for right hip flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1308,8 +1383,8 @@
         "id": "C20033",
         "name": "ManualMuscleTestScoreHERight",
         "description": "Manual Muscle Testing (MMT) for right hip extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1353,8 +1428,8 @@
         "id": "C20034",
         "name": "ManualMuscleTestScoreHABDRight",
         "description": "Manual Muscle Testing (MMT) for right hip abduction",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1398,8 +1473,8 @@
         "id": "C20035",
         "name": "ManualMuscleTestScoreHADDRight",
         "description": "Manual Muscle Testing (MMT) for right hip adduction",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1443,8 +1518,8 @@
         "id": "C20036",
         "name": "ManualMuscleTestScoreHERRight",
         "description": "Manual Muscle Testing (MMT) for right hip external rotation",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1488,8 +1563,8 @@
         "id": "C20037",
         "name": "ManualMuscleTestScoreKFLeft",
         "description": "Manual Muscle Testing (MMT) for left knee flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1533,8 +1608,8 @@
         "id": "C20038",
         "name": "ManualMuscleTestScoreKELeft",
         "description": "Manual Muscle Testing (MMT) for left knee extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1578,8 +1653,8 @@
         "id": "C20039",
         "name": "ManualMuscleTestScoreKFRight",
         "description": "Manual Muscle Testing (MMT) for right knee flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1623,8 +1698,8 @@
         "id": "C20040",
         "name": "ManualMuscleTestScoreKERight",
         "description": "Manual Muscle Testing (MMT) for right knee extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1668,8 +1743,8 @@
         "id": "C20041",
         "name": "ManualMuscleTestScoreWFLeft",
         "description": "Manual Muscle Testing (MMT) for left wrist flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1705,8 +1780,8 @@
         "id": "C20042",
         "name": "ManualMuscleTestScoreWELeft",
         "description": "Manual Muscle Testing (MMT) for left wrist extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1742,8 +1817,8 @@
         "id": "C20043",
         "name": "ManualMuscleTestScoreWFRight",
         "description": "Manual Muscle Testing (MMT) for right wrist flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1779,8 +1854,8 @@
         "id": "C20044",
         "name": "ManualMuscleTestScoreWERight",
         "description": "Manual Muscle Testing (MMT) for right wrist extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1816,8 +1891,8 @@
         "id": "C20045",
         "name": "ManualMuscleTestScoreNF",
         "description": "Manual Muscle Testing (MMT) for neck flexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1853,8 +1928,8 @@
         "id": "C20046",
         "name": "ManualMuscleTestScoreNE",
         "description": "Manual Muscle Testing (MMT) for neck extension",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1890,8 +1965,8 @@
         "id": "C20047",
         "name": "ManualMuscleTestScoreADLeft",
         "description": "Manual Muscle Testing (MMT) for left ankle dorsiflexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1927,8 +2002,8 @@
         "id": "C20048",
         "name": "ManualMuscleTestScoreAPLLeft",
         "description": "Manual Muscle Testing (MMT) for left ankle plantarflexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -1964,8 +2039,8 @@
         "id": "C20049",
         "name": "ManualMuscleTestScoreADRight",
         "description": "Manual Muscle Testing (MMT) for right ankle dorsiflexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2001,8 +2076,8 @@
         "id": "C20050",
         "name": "ManualMuscleTestScoreAPLRight",
         "description": "Manual Muscle Testing (MMT) for right ankle plantarflexion",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2038,8 +2113,8 @@
         "id": "C20051",
         "name": "ManualMuscleTestScoreTHABDLeft",
         "description": "Manual Muscle Testing (MMT) for left thenar abductor pollicis brevis",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2075,8 +2150,8 @@
         "id": "C20052",
         "name": "ManualMuscleTestScoreTHABDRight",
         "description": "Manual Muscle Testing (MMT) for right thenar abductor pollicis brevis",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2112,8 +2187,8 @@
         "id": "C20053",
         "name": "ManualMuscleTestScoreFDMLeft",
         "description": "Manual Muscle Testing (MMT) for left flexor digiti minimi",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2149,8 +2224,8 @@
         "id": "C20054",
         "name": "ManualMuscleTestScoreFDMRight",
         "description": "Manual Muscle Testing (MMT) for right flexor digiti minimi",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2186,8 +2261,8 @@
         "id": "C20055",
         "name": "ManualMuscleTestScoreFDILeft",
         "description": "Manual Muscle Testing (MMT) for left first dorsal interossei",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2223,8 +2298,8 @@
         "id": "C20056",
         "name": "ManualMuscleTestScoreFDIRight",
         "description": "Manual Muscle Testing (MMT) for right first dorsal interossei",
-        "topic": "outcomes and endpoints",
-        "purpose": "muscle strength testing",
+        "topic": "finding",
+        "purpose": "functional markers",
         "relatedArtifact": {
             "class": "core",
             "valueType": "ordinal",
@@ -2258,10 +2333,10 @@
     },
     {
         "id": "C20057",
-        "name": "DiagnosALS",
+        "name": "ALS",
         "description": "diagnosis of amyotrophic lateral sclerosis",
-        "topic": "diease/injury related events",
-        "purpose": "symptom/sign and diagnosis criteria",
+        "topic": "event",
+        "purpose": "neurologic",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -2406,10 +2481,10 @@
     },
     {
         "id": "C20058",
-        "name": "SymptmSpeech",
+        "name": "SxSpeech",
         "description": "speech disorder or deficit",
-        "topic": "diease/injury related events",
-        "purpose": "symptom/sign and diagnosis criteria",
+        "topic": "event",
+        "purpose": "general signs/symptoms",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -2457,10 +2532,10 @@
     },
     {
         "id": "C20059",
-        "name": "SymptmSwallowing",
+        "name": "SxSwallowing",
         "description": "swallowing disturbance, pain in throat, dysphasia",
-        "topic": "diease/injury related events",
-        "purpose": "symptom/sign and diagnosis criteria",
+        "topic": "event",
+        "purpose": "general signs/symptoms",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -2508,10 +2583,10 @@
     },
     {
         "id": "C20060",
-        "name": "SymptmMuscleWeakness",
+        "name": "SxMuscleWeakness",
         "description": "muscle weakness, disuse, atrophy, or ligament disorder",
-        "topic": "diease/injury related events",
-        "purpose": "symptom/sign and diagnosis criteria",
+        "topic": "event",
+        "purpose": "general signs/symptomsa",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -2522,6 +2597,20 @@
         },
         "compose": {
             "include": [
+                {
+                    "system": "icd9cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "335.21",
+                                "728.87",
+                                "728.2"
+                            ]
+                        }
+                    ]
+                },
                 {
                     "system": "icd10cm",
                     "filter": [
@@ -2545,10 +2634,10 @@
     },
     {
         "id": "C20061",
-        "name": "SymptmMuscleMovement",
+        "name": "SxMuscleMovement",
         "description": "involuntary muscle movement (cramping, spasm, switching, fasciculation, myopathy)",
-        "topic": "diease/injury related events",
-        "purpose": "symptom/sign and diagnosis criteria",
+        "topic": "event",
+        "purpose": "general signs/symptoms",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -2595,10 +2684,10 @@
     },
     {
         "id": "C20062",
-        "name": "SymptmPainJointLimb",
+        "name": "SxPainJointLimb",
         "description": "pain in joint or pain in limb",
-        "topic": "diease/injury related events",
-        "purpose": "symptom/sign and diagnosis criteria",
+        "topic": "event",
+        "purpose": "general signs/symptomsa",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -2640,10 +2729,10 @@
     },
     {
         "id": "C20063",
-        "name": "SymptmWalking",
+        "name": "SxWalking",
         "description": "difficulty walking or gait abnormality",
-        "topic": "diease/injury related events",
-        "purpose": "symptom/sign and diagnosis criteria",
+        "topic": "event",
+        "purpose": "general signs/symptoms",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -2688,7 +2777,7 @@
         "id": "C20064",
         "name": "MobilityDeviceWalkerCane",
         "description": "mobility device - walker or cane",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "supplemental",
@@ -2736,7 +2825,7 @@
         "id": "C20065",
         "name": "MobilityDeviceHygiene",
         "description": "mobility devices for maintaining hygiene (commodes, bedpands, urinals, shower assistive device)",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "supplemental",
@@ -2770,7 +2859,7 @@
         "id": "C20066",
         "name": "MobilityDeviceTransfer",
         "description": "lifts and support systems and safety devices",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "supplemental",
@@ -2802,7 +2891,7 @@
         "id": "C20067",
         "name": "MobilityDeviceWheelchair",
         "description": "manual or power wheelchairs and transport chairs",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "supplemental",
@@ -2834,9 +2923,9 @@
     },
     {
         "id": "C20068",
-        "name": "MobilityDeviceCommunication",
+        "name": "AssistiveDeviceCommunication",
         "description": "AAC and other speech-language pathology related devices",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "supplemental",
@@ -2897,7 +2986,7 @@
         "id": "C20069",
         "name": "EnteralFeedingEquipment",
         "description": "enteral feeding supplies and equipment or gastrostomy",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "supplemental",
@@ -2980,7 +3069,7 @@
         "id": "C20070",
         "name": "RespiratoryDeviceNIV",
         "description": "non-invasive ventilator or BiPAP ",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "exploratory",
@@ -3036,7 +3125,7 @@
                     "filter": [
                         {
                             "property": "codePrecision",
-                            "op": "in",
+                            "op": "descendent-of",
                             "value": [
                                 "5A093",
                                 "5A094",
@@ -3063,9 +3152,9 @@
     },
     {
         "id": "C20071",
-        "name": "InvasiveRespiratoryDeviceMV",
+        "name": "RespiratoryDeviceMV",
         "description": "invasive ventilator or tracheostomy",
-        "topic": "treatment/intervention",
+        "topic": "diagnostics/intervention",
         "purpose": "devices",
         "relatedArtifact": {
             "class": "supplemental",
@@ -3106,7 +3195,7 @@
                     "filter": [
                         {
                             "property": "codePrecision",
-                            "op": "in",
+                            "op": "descendent-of",
                             "value": [
                                 "94.7"
                             ]
@@ -3118,7 +3207,7 @@
                     "filter": [
                         {
                             "property": "codePrecision",
-                            "op": "in",
+                            "op": "descendent-of",
                             "value": [
                                 "5A09B",
                                 "5A09C",
@@ -3146,8 +3235,8 @@
         "id": "C020072",
         "name": "NeurologyVisit",
         "description": "visit to neurologist",
-        "topic": "treatment/intervention",
-        "purpose": "precedures",
+        "topic": "diagnostics/intervention",
+        "purpose": "care setting",
         "relatedArtifact": {
             "class": "recommended",
             "valueType": "boolean",
@@ -3163,7 +3252,7 @@
                     "concept": [
                         {
                             "code": "13",
-                            "display": ""
+                            "display": "neurology"
                         }
                     ]
                 },
@@ -3201,10 +3290,6 @@
                         {
                             "code": "2251N0400X",
                             "display": "Physical Therapist Neurology"
-                        },
-                        {
-                            "code": "2084H0002X",
-                            "display": "Hospice and Palliative Medicine"
                         }
                     ]
                 },
@@ -3225,18 +3310,6 @@
                             "display": "Hospital-based outpatient neurology clinic"
                         }
                     ]
-                },
-                {
-                    "system": "other",
-                    "filter": [
-                        {
-                            "property": "textRegex",
-                            "op": "regex",
-                            "value": [
-                                "(neuro)+"
-                            ]
-                        }
-                    ]
                 }
             ]
         }
@@ -3245,8 +3318,8 @@
         "id": "C020073",
         "name": "riluzole",
         "description": "prescription or dispensing of riluzole",
-        "topic": "treatment/intervention",
-        "purpose": "drugs",
+        "topic": "diagnostics/intervention",
+        "purpose": "concomitant medications",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -3340,8 +3413,8 @@
         "id": "C020074",
         "name": "edaravone",
         "description": "prescription and dispensing of edaravone",
-        "topic": "treatment/intervention",
-        "purpose": "drugs",
+        "topic": "diagnostics/intervention",
+        "purpose": "concomitant medications",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -3407,8 +3480,8 @@
         "id": "C020075",
         "name": "tofersen",
         "description": "prescription and dispensing of tofersen",
-        "topic": "treatment/intervention",
-        "purpose": "drugs",
+        "topic": "diagnostics/intervention",
+        "purpose": "concomitant medications",
         "relatedArtifact": {
             "class": "core",
             "valueType": "boolean",
@@ -3447,6 +3520,224 @@
                             "op": "exists",
                             "value": [
                                 "64406010901"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "id": "C020076",
+        "name": "PBP",
+        "description": "diagnosis of progressive bulbar palsy",
+        "topic": "event",
+        "purpose": "neurologic",
+        "relatedArtifact": {
+            "class": "recommended",
+            "valueType": "nominal",
+            "valueRange": {
+                "0": "absence",
+                "1": "presence"
+            }
+        },
+        "compose": {
+            "include": [
+                {
+                    "system": "icd10cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "G12.22"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "system": "icd9cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "335.22"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "id": "C020077",
+        "name": "PLS",
+        "description": "diagnosis of primary lateral sclerosis",
+        "topic": "event",
+        "purpose": "neurologic",
+        "relatedArtifact": {
+            "class": "recommended",
+            "valueType": "boolean",
+            "valueRange": {
+                "0": "absence",
+                "1": "presence"
+            }
+        },
+        "compose": {
+            "include": [
+                {
+                    "system": "icd9cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "335.24"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "system": "icd10cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "G12.23"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "id": "C020078",
+        "name": "SMA",
+        "description": "diagnosis of spinal muscular atrophy",
+        "topic": "event",
+        "purpose": "neurologic",
+        "relatedArtifact": {
+            "class": "recommended",
+            "valueType": "boolean",
+            "valueRange": {
+                "0": "absence",
+                "1": "presence"
+            }
+        },
+        "compose": {
+            "include": [
+                {
+                    "system": "icd10cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "G12.25",
+                                "G12.0",
+                                "G12.1"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "system": "icd9cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "335.0",
+                                "335.1"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "id": "C020079",
+        "name": "PBA",
+        "description": "diagnosis of pseudobulbar affect/palsy",
+        "topic": "event",
+        "purpose": "neurologic",
+        "relatedArtifact": {
+            "class": "recommended",
+            "valueType": "boolean",
+            "valueRange": {
+                "0": "absence",
+                "1": "presence"
+            }
+        },
+        "compose": {
+            "include": [
+                {
+                    "system": "icd9cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "335.23"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "system": "icd10cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "F48.2"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "id": "C020080",
+        "name": "FTD",
+        "description": "diagnosis of frontotemporal dementia",
+        "topic": "event",
+        "purpose": "neurologic",
+        "relatedArtifact": {
+            "class": "recommended",
+            "valueType": "boolean",
+            "valueRange": {
+                "0": "absence",
+                "1": "presence"
+            }
+        },
+        "compose": {
+            "include": [
+                {
+                    "system": "icd9cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "331.1"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "system": "icd10cm",
+                    "filter": [
+                        {
+                            "property": "codePrecision",
+                            "op": "descendent-of",
+                            "value": [
+                                "G31.0"
                             ]
                         }
                     ]

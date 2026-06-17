@@ -7,8 +7,8 @@ snowflake-snowpark-python
 snowflake-connector-python
 pandas
 boto3
-matplotlib
 openpyxl
+# matplotlib
 # parse
 # smart_open
 # pathlib

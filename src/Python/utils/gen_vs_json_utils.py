@@ -69,22 +69,13 @@ class JsonBlockVS:
             "3":"precedures"
         },
         "6":{
-            "1":"functional",
+            "1":"muscle strength testing",
             "2":"cognitive",
-            "3":"behavioral",
-            "4":"pulmonary/respiratory",
-            "5":"cardiovascular",
-            "6":"renal",
-            "7":"hepatic/GI",
-            "8":"metabolic",
-            "9":"musculoskeletal",
-            "10":"immune/infectious",
-            "11":"oncologic",
-            "12":"PRO",
-            "13":"adverse event",
-            "14":"utilization",
-            "15":"economic",
-            "16":"other"
+            "3":"functional outcomes",
+            "4":"pulmonary function testing/respiratory status",
+            "5":"subjective assessments/patient and caregiver reported outcomes",
+            "6":"upper motor neuron signs/neuromuscular excitability",
+            "7":"severe maternal morbidity"
         }
     }
 
@@ -170,22 +161,19 @@ class JsonBlockVS:
     }
 
     OP_ENCODER = {
-        "1":{
-            "1":"descendent-of",
-            "2":"child-of",
-            "3":"descendent-leaf"
-        },
-        "2":{
-            "1":"in",
-            "2":"not-in"
-        },
-        "3":{
-            "1":"exists"
-        },
-        "4":{
-            "1":"regex"
-        }
+        "1":"=",
+        "2":"is-a",
+        "3":"descendent-of",
+        "4":"is-not-a",
+        "5":"regex",
+        "6":"in",
+        "7":"not-in",
+        "8":"generalizes",
+        "9":"child-of",
+        "10":"descendent-leaf",
+        "11":"exists"
     }
+    
 
     def __init__(self,filepath,idstarter,idlength):
         self.filepath = filepath
@@ -264,12 +252,12 @@ class JsonBlockVS:
                     if add_filter == '1':
                         for key, value in self.PROPERTY_ENCODER.items(): print(f"{key}:{value}")
                         property_choice = input("Enter property: ")
-                        for key2, value2 in self.OP_ENCODER[property_choice].items(): print(f"{key2}:{value2}")
+                        for key, value in self.OP_ENCODER.items(): print(f"{key}:{value}")
                         op_choice = input("Enter operation: ")
                         input_value = input("Enter value (separated by comma): ")
                         filter_entry = {
                             "property": self.PROPERTY_ENCODER[property_choice],
-                            "op": self.OP_ENCODER[property_choice][op_choice],
+                            "op": self.OP_ENCODER[op_choice],
                             "value": [item.strip() for item in input_value.split(',')]
                         }
                         data_block["compose"]["include"][-1]["filter"].append(filter_entry)
@@ -359,6 +347,9 @@ def json2ref(
     return('new valueset saved as ref csv')
 
 class QueryFromJson:
+    # Class-level cache for cdtype_encoder to remember input across instances
+    _cdtype_cache = {}
+    
     def __init__(
         self,
         url, #url to json file
@@ -442,7 +433,14 @@ class QueryFromJson:
         allprompts = {code: f"Enter Code Type Value for {code}: " for code in allkeys} 
         cdtype_encoder = {}
         for code in codes_to_prompt:
-            cdtype_encoder[code] = input(allprompts[code])
+            # Check if this code type already has a cached value
+            if code in QueryFromJson._cdtype_cache:
+                cdtype_encoder[code] = QueryFromJson._cdtype_cache[code]
+            else:
+                # Prompt for input and cache it
+                user_input = input(allprompts[code])
+                cdtype_encoder[code] = user_input
+                QueryFromJson._cdtype_cache[code] = user_input
 
         return(cdtype_encoder)
         
@@ -478,15 +476,14 @@ class QueryFromJson:
                             incld_dict = {0:">", 1:">="}
                             high_val = x["relatedArtifact"]["valueRange"]["high"]["value"]
                             incld_ind = x["relatedArtifact"]["valueRange"]["high"]["incld"]
-                            qry_val += " and " + self.val_field + incld_dict[incld_ind] + str(high_val) + ")"
+                            qry_val += " and " + self.val_field + incld_dict[incld_ind] + str(high_val)
 
                         if "low" in x["relatedArtifact"]["valueRange"]:
                             incld_dict = {0:"<", 1:"<="}
                             low_val = x["relatedArtifact"]["valueRange"]["low"]["value"]
                             incld_ind = x["relatedArtifact"]["valueRange"]["low"]["incld"]
-                            qry_val += " and " + self.val_field + incld_dict[incld_ind] + str(low_val)  + ")"
-
-                    # codes
+                            qry_val += " and " + self.val_field + incld_dict[incld_ind] + str(low_val)
+                                       # codes
                     qryxy_orlst = []
                     if "filter" in y: 
                         cdref = self.parse_filter(y["filter"])
@@ -517,7 +514,7 @@ class QueryFromJson:
 
                     else:
                         cdref_leaf = self.parse_concept(y["concept"])
-                        qryx_orlst.append(qry_cdtype + ''' (''' + self.cd_field + ''' in ('''+ ','.join(self.add_quote(cdref_leaf)) + ''')''' + qry_val)
+                        qryx_orlst.append(qry_cdtype + ''' (''' + self.cd_field + ''' in ('''+ ','.join(self.add_quote(cdref_leaf)) + ''')''' + qry_val + ''')''')
 
                 else: 
                     pass
@@ -543,4 +540,5 @@ class QueryFromJson:
                 ''')
         complt_qry = ' union all '.join(selqry_lst)
         return(complt_qry)
+
 

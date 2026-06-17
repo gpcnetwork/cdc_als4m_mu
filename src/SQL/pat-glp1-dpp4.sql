@@ -1,7 +1,4 @@
 /*
-# Copyright (c) 2021-2025 University of Missouri                   
-# Author: Xing Song, xsm7f@umsystem.edu                            
-# File: pat-glp1.sql
 # Description: identify all patients who have ever used GLP1 agonist or DPP4 inhibitor
 # Dependency: 
 # - Z_GLP1_DPP4_RXN_NDC: staged from rxnorm and ndc ref file 
@@ -33,7 +30,6 @@ unpivot (
 )
 where NDC is not null
 ;
-
 
 create or replace procedure get_glp1_event_long(
     SITES array,
@@ -328,18 +324,6 @@ select count(distinct patid), count(*), sum(GLP1_IND), sum(DPP4_IND),sum(GLP1_IN
 from GLP1_DPP4_TABLE1_CMS
 ;
 --1043867	1043867	404192	769720	130045
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* cohort study */
 create or replace table ALS_GLP1 as 
