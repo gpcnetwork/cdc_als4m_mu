@@ -1,4 +1,80 @@
+select count(distinct patid), count(*) from DM_DXRX_LONG;
+-- 4,665,261	359,975,335
+-- 10,776,675	989,220,271
+
+
+select count(distinct patid) from DM_DXRX_LONG
+where phe_type in ('T2DM','T1DM') and SITE!='CMS';
+-- 2,811,768
+
+select count(distinct patid), count(*) from DM_LAB_LONG;
+-- 1,965,409	21,177,216
+select count(distinct patid), count(*) from ALS_DXRXPX_LONG;
+-- 10,853,298	139,287,065
+-- 22,442,397	497,007,816
+
+select * from DM_DXRX_LONG limit 5;
+select * from DM_LAB_LONG limit 5;
+select PHE_TYPE, count(distinct patid)
+from DM_DXRX_LONG
+group by PHE_TYPE
+;
+
+select PHE_TYPE, count(distinct patid)
+from DM_LAB_LONG
+group by PHE_TYPE
+;
+
+select * from ALS_DXRXPX_LONG limit 5;
+select PHE_TYPE, count(distinct patid)
+from ALS_DXRXPX_LONG
+group by PHE_TYPE
+;
+
+create or replace table DM_TBL1_CENSOR as 
+with cte as (
+  select a.*, b.censor_date,
+         row_number() over (partition by a.patid order by b.censor_date desc) as rn
+from DM_TBL1 a
+join PAT_TABLE1 b 
+on a.patid = b.patid
+)
+select cte.* exclude (rn)
+from cte
+where rn = 1;
+
+select * from DM_TBL1;
+select count(distinct patid), count(*) from DM_TBL1;
+-- 2,345,051
+-- 7,580,548
+-- 2,719,403
+
+
+select * from ALS_DM_ANNUAL_RATES;
+
+select T1DM_IND, T1DM_IND2, count(distinct patid) 
+from DM_TBL1 
+group by T1DM_IND, T1DM_IND2
+;
+
+select count(distinct patid) from PAT_DEMO_LONG;
+-- 35,870,549
+select count(distinct patid), count(*) from PAT_TABLE1;
+-- 35,870,549
+
+select * from ALS_CASE_TABLE1 limit 5;
+select count(distinct patid), count(*) from ALS_CASE_TABLE1;
+-- 13806
+
+select count(distinct patid) from ALS_INC_CASE_TABLE1;
+-- 5,929
+
+select * from ALS_DM_ANNUAL_RATES;
+
+
 select * from T2DM_TABLE1 limit 5;
+
+
 select * from GLP1_DPP4_TABLE1 limit 5;
 
 create or replace table T2DM_REF as 

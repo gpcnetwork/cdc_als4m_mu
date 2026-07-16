@@ -34,10 +34,9 @@ def _create_pat_demo_long(session: Session) -> None:
             SEX varchar(3),
             RACE varchar(6),
             HISPANIC varchar(20),
-            INDEX_SRC varchar(20),
             CENSOR_DATE date,
             DEATH_IND integer,
-            CMS_IND integer
+            SRC varchar(20)
         )
         """
     ).collect()
@@ -45,8 +44,6 @@ def _create_pat_demo_long(session: Session) -> None:
 
 def _build_pat_demo_long_site(session: Session, site: str):
     site_cdm = _site_cdm(site)
-    cms_ind = 1 if site == "CMS" else 0
-
     demo = session.table(f"GROUSE_DB.{site_cdm}.LDS_DEMOGRAPHIC")
     enc = session.table(f"GROUSE_DB.{site_cdm}.LDS_ENCOUNTER")
     dth = session.table(f"GROUSE_DB.{site_cdm}.LDS_DEATH")
@@ -67,6 +64,9 @@ def _build_pat_demo_long_site(session: Session, site: str):
                 enc["ADMIT_DATE"].cast("DATE"),
             )
             <= current_date()
+        )
+        .filter(
+            ~enc["ENC_TYPE"].isin(["NI","UN","OT"])
         )
         .select(
             enc["PATID"].alias("PATID"),
@@ -90,7 +90,7 @@ def _build_pat_demo_long_site(session: Session, site: str):
             when(demo["HISPANIC"].isin(["NI", "UN", "R", "OT"]), lit(None)).otherwise(
                 demo["HISPANIC"]
             ).alias("HISPANIC"),
-            lit(site).alias("INDEX_SRC"),
+            lit(site).alias("SRC"),
             censor_date.alias("CENSOR_DATE"),
             death_date.alias("DEATH_DATE"),
         )
@@ -106,12 +106,9 @@ def _build_pat_demo_long_site(session: Session, site: str):
             col("SEX"),
             col("RACE"),
             col("HISPANIC"),
-            col("INDEX_SRC"),
             coalesce(col("DEATH_DATE"), col("CENSOR_DATE")).alias("CENSOR_DATE"),
-            when(col("DEATH_DATE").is_not_null(), lit(1)).otherwise(lit(0)).alias(
-                "DEATH_IND"
-            ),
-            lit(cms_ind).alias("CMS_IND"),
+            when(col("DEATH_DATE").is_not_null(), lit(1)).otherwise(lit(0)).alias("DEATH_IND"),
+            col("SRC")
         )
         .distinct()
     )
@@ -126,57 +123,6 @@ def build_pat_demo_long(session: Session, sites: list[str]):
         )
         print(f"✅ PAT_DEMO_LONG data for site {site} appended.")
 
-def _get_partab(session: Session):
-    enr = session.table("GROUSE_DEID_DB.CMS_PCORNET_CDM.LDS_ENROLLMENT")
-    return (
-        enr.filter(col("ENR_BASIS") == lit("I"))
-        .group_by(col("PATID"))
-        .agg(
-            s_min(col("ENR_START_DATE")).alias("PARTAB_START_DATE"),
-            s_max(coalesce(col("ENR_END_DATE"), col("ENR_START_DATE"))).alias(
-                "PARTAB_END_DATE"
-            ),
-            s_max(when(col("CHART") == lit("Y"), lit(1)).otherwise(lit(0))).alias(
-                "XWALK_IND"
-            ),
-        )
-    )
-
-
-def _get_partd(session: Session):
-    enr = session.table("GROUSE_DEID_DB.CMS_PCORNET_CDM.LDS_ENROLLMENT")
-    return (
-        enr.filter(col("ENR_BASIS") == lit("D"))
-        .group_by(col("PATID"))
-        .agg(
-            s_min(col("ENR_START_DATE")).alias("PARTD_START_DATE"),
-            s_max(coalesce(col("ENR_END_DATE"), col("ENR_START_DATE"))).alias(
-                "PARTD_END_DATE"
-            ),
-        )
-    )
-
-
-def _get_ehr(session: Session):
-    demo = session.table("PAT_DEMO_LONG")
-    return (
-        demo.filter(col("CMS_IND") == lit(0))
-        .group_by(col("PATID"))
-        .agg(
-            s_min(col("INDEX_DATE")).alias("EHR_START_DATE"),
-            s_max(col("INDEX_DATE")).alias("EHR_END_DATE"),
-        )
-    )
-
-
-def _get_partc(session: Session):
-    enr = session.table("GROUSE_DEID_DB.CMS_PCORNET_CDM.LDS_ENROLLMENT")
-    return (
-        enr.filter(col("RAW_BASIS") == lit("C"))
-        .select(col("PATID"), lit(1).alias("PARTC_IND"))
-        .distinct()
-    )
-
 
 def build_pat_table1(session: Session):
     demo = session.table("PAT_DEMO_LONG")
@@ -186,15 +132,10 @@ def build_pat_table1(session: Session):
         .with_column(
             "RN",
             row_number().over(
-                Window.partition_by("PATID").order_by(col("INDEX_DATE"), col("CMS_IND").desc())
+                Window.partition_by("PATID").order_by(col("INDEX_DATE"), col("DEATH_IND").desc())
             ),
         )
     )
-
-    partab = _get_partab(session).with_column_renamed("PATID", "PARTAB_PATID")
-    partd = _get_partd(session).with_column_renamed("PATID", "PARTD_PATID")
-    ehr = _get_ehr(session).with_column_renamed("PATID", "EHR_PATID")
-    partc = _get_partc(session).with_column_renamed("PATID", "PARTC_PATID")
 
     agegrp = (
         when(cte_ord["AGE_AT_INDEX"].is_null(), lit("NI"))
@@ -234,10 +175,6 @@ def build_pat_table1(session: Session):
 
     pat_table1 = (
         cte_ord.filter(cte_ord["RN"] == 1)
-        .join(ehr, cte_ord["PATID"] == ehr["EHR_PATID"], "left")
-        .join(partab, cte_ord["PATID"] == partab["PARTAB_PATID"], "left")
-        .join(partc, cte_ord["PATID"] == partc["PARTC_PATID"], "left")
-        .join(partd, cte_ord["PATID"] == partd["PARTD_PATID"], "left")
         .select(
             cte_ord["PATID"].alias("PATID"),
             cte_ord["BIRTH_DATE"].alias("BIRTH_DATE"),
@@ -249,24 +186,10 @@ def build_pat_table1(session: Session):
             race_grp.alias("RACE"),
             hispanic_grp.alias("HISPANIC"),
             cte_ord["INDEX_ENC_TYPE"].alias("INDEX_ENC_TYPE"),
-            cte_ord["INDEX_SRC"].alias("INDEX_SRC"),
             cte_ord["CENSOR_DATE"].alias("CENSOR_DATE"),
             year(cte_ord["CENSOR_DATE"]).alias("CENSOR_YEAR"),
             cte_ord["DEATH_IND"].alias("DEATH_IND"),
-            coalesce(partab["XWALK_IND"], lit(0)).alias("XWALK_IND"),
-            partab["PARTAB_START_DATE"].alias("PARTAB_START_DATE"),
-            partab["PARTAB_END_DATE"].alias("PARTAB_END_DATE"),
-            when(partd["PARTD_START_DATE"].is_not_null(), lit(1)).otherwise(lit(0)).alias(
-                "PARTD_IND"
-            ),
-            partd["PARTD_START_DATE"].alias("PARTD_START_DATE"),
-            partd["PARTD_END_DATE"].alias("PARTD_END_DATE"),
-            when(ehr["EHR_START_DATE"].is_not_null(), lit(1)).otherwise(lit(0)).alias(
-                "EHR_IND"
-            ),
-            ehr["EHR_START_DATE"].alias("EHR_START_DATE"),
-            ehr["EHR_END_DATE"].alias("EHR_END_DATE"),
-            coalesce(partc["PARTC_IND"], lit(0)).alias("PARTC_IND"),
+            cte_ord["SRC"].alias("SRC"),
         )
     )
 
@@ -275,10 +198,10 @@ def build_pat_table1(session: Session):
 
 def main():
     env.load_env()
-    cfg = conn.load_snowcfg("DEID")
-    session = conn.get_snow_conn(cfg)
-    session.use_database(os.environ["DEID_SNOW_DATABASE"])
-    session.use_schema("SX_CISTEM2")
+    connect_params = conn.load_snowcfg("ID")
+    session = conn.get_snow_conn(connect_params)
+    session.use_database(os.environ["ID_SNOW_DATABASE"])
+    session.use_schema("SX_ALS_GPC")
     print(session.sql("SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_DATABASE()").collect())
 
     sites = [
@@ -289,13 +212,14 @@ def main():
         "MCW",
         "MU",
         "UCD",
+        "UCLA",
         "UIOWA",
         "UNMC",
         "UTHOUSTON",
-        "UTHSCSA",
         "UTSW",
         "UU",
-        "WASHU"
+        "WASHU",
+        # "CMS"
     ]
 
     build_pat_demo_long(session, sites)

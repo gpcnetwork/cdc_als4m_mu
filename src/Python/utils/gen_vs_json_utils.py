@@ -34,48 +34,82 @@ def split_part_multisql(
 
 class JsonBlockVS:
     TOPIC_ENCODER = {
-        "1": "participant characteristics",
-        "2": "participant history and family history",
-        "3": "diease/injury related events",
-        "4": "assessment and examinations",
-        "5": "treatment/intervention",
-        "6": "outcomes and endpoints"
+        "1": "characteristic",
+        "2": "history",
+        "3": "event",
+        "4": "finding",
+        "5": "diagnostics/intervention",
+        "6": "economics",
+        "7": "nonclinical"
     }
 
     PURPOSE_ENCODER = {
         "1": {
             "1":"demographics",
-            "2":"social status"
+            "2":"socioeconomics"
         },
         "2":{
             "1":"family history",
             "2":"medical history"
         },
         "3": {
-            "1":"symptom/sign and diagnosis criteria",
-            "2":"genetics",
-            "3":"comorbidities"
+            "1":"neurologic",
+            "2":"pulmonary/respiratory",
+            "3":"psychiatric/behavioral",
+            "4":"cardiovascular",
+            "5":"gastrointestinal",
+            "6":"hepatobiliary",
+            "7":"renal/urinary",
+            "8":"endocrine/metabolic",
+            "9":"musculoskeletal",
+            "10":"immunologic/infectious",
+            "11":"dermatologic",
+            "12":"hematologic",
+            "13":"oncologic",
+            "14":"reproductive",
+            "15":"general signs/symptoms",
+            "16":"functional",
+            "17":"ophthalmologic",
+            "18":"otolaryngologic",
+            "19":"oral/dental",
+            "20":"rheumatologic",
+            "21":"genetic/congenital",
+            "22":"trauma/injury",
+            "23":"toxicologic/poisoning",
+            "24":"perioperative/anesthesia-related",
+            "25":"nutrition-related",
+            "26":"sleep disorders",
+            "27":"pediatric/neonatal-specific",
+            "28":"gynecologic/obstetric",
+            "29":"allergic/hypersensitivity",
+            "30":"PRO",
+            "31":"adverse event"
         },
         "4":{
-            "1":"laboratory tests and biospecimens/biomarkers",
-            "2":"imaging diagnostics",
-            "3":"non-imaging diagnostics",
-            "4":"physical/neurological examination",
-            "5":"vital signs and other body measures"
+            "1":"biological/molecular markers",
+            "2":"anthropometric measures",
+            "3":"physiological markers",
+            "4":"functional markers",
+            "5":"imaging markers",
+            "6":"behavioral markers",
+            "7":"environmental markers"
         },
         "5":{
-            "1":"drugs",
-            "2":"devices",
-            "3":"precedures"
+            "1":"exposure",
+            "2":"concomitant medications",
+            "3":"interventional precedures",
+            "4":"diagnostic precedures",
+            "5":"substance use",
+            "6":"devices",
+            "7":"care setting"
         },
         "6":{
-            "1":"muscle strength testing",
-            "2":"cognitive",
-            "3":"functional outcomes",
-            "4":"pulmonary function testing/respiratory status",
-            "5":"subjective assessments/patient and caregiver reported outcomes",
-            "6":"upper motor neuron signs/neuromuscular excitability",
-            "7":"severe maternal morbidity"
+            "1":"insurance provider",
+            "2":"insurance plan",
+            "3":"utilization"
+        },
+        "7":{
+            "1":"other"
         }
     }
 
@@ -91,12 +125,13 @@ class JsonBlockVS:
         "2": "ordinal",
         "3": "discrete",
         "4": "continuous",
-        "5": "boolean"
+        "5": "boolean",
+        "6": "date"
     }
 
     VALUERANGE_ENCODER = {
-        "1": {}, 
-        "2": {},
+        "1": {},  
+        "2": {}, 
         "3": {
             "min":int(),
             "max":int(),
@@ -128,7 +163,8 @@ class JsonBlockVS:
         "5": {
             "0": "absence",
             "1": "presence"
-        }
+        },
+        "6": {}
     }
 
     SYSTEM_ENCODER = {
@@ -156,24 +192,23 @@ class JsonBlockVS:
     PROPERTY_ENCODER = {
         "1":"codePrecision",
         "2":"codeRange",
-        "3":"codeList",
-        "4":"textRegex"
+        "3":"codeList"
     }
 
     OP_ENCODER = {
-        "1":"=",
-        "2":"is-a",
-        "3":"descendent-of",
-        "4":"is-not-a",
-        "5":"regex",
-        "6":"in",
-        "7":"not-in",
-        "8":"generalizes",
-        "9":"child-of",
-        "10":"descendent-leaf",
-        "11":"exists"
+        "1":{
+            "1":"descendent-of",
+            "2":"child-of",
+            "3":"descendent-leaf"
+        },
+        "2":{
+            "1":"in",
+            "2":"not-in"
+        },
+        "3":{
+            "1":"exists"
+        }
     }
-    
 
     def __init__(self,filepath,idstarter,idlength):
         self.filepath = filepath
@@ -252,12 +287,12 @@ class JsonBlockVS:
                     if add_filter == '1':
                         for key, value in self.PROPERTY_ENCODER.items(): print(f"{key}:{value}")
                         property_choice = input("Enter property: ")
-                        for key, value in self.OP_ENCODER.items(): print(f"{key}:{value}")
+                        for key2, value2 in self.OP_ENCODER[property_choice].items(): print(f"{key2}:{value2}")
                         op_choice = input("Enter operation: ")
                         input_value = input("Enter value (separated by comma): ")
                         filter_entry = {
                             "property": self.PROPERTY_ENCODER[property_choice],
-                            "op": self.OP_ENCODER[op_choice],
+                            "op": self.OP_ENCODER[property_choice][op_choice],
                             "value": [item.strip() for item in input_value.split(',')]
                         }
                         data_block["compose"]["include"][-1]["filter"].append(filter_entry)
@@ -373,6 +408,7 @@ class QueryFromJson:
         self.sel_keys = sel_keys
         self.sel_domain = sel_domain
         self.val_field = val_field
+        self._cdtype_cache = {}
 
     @staticmethod
     def add_quote(lst):
@@ -416,13 +452,21 @@ class QueryFromJson:
         return(codes)
 
     def gen_cdtype_encoder(self):
+        # initialize persistent storage on the object if needed
+        if not hasattr(self, "_cdtype_cache"):
+            self._cdtype_cache = {}
+
         domain_to_codes = {
             "dx":  ["icd9cm", "icd10cm", "snomed", "drg"],
             "px":  ["icd9proc", "icd10pcs", "cpt", "hpc"],
             "lab": ["loinc"],
             "rx":  ["rxnorm", "ndc"]
         }
+
+        # Flatten and sort all keys
         allkeys = sorted({code for codes in domain_to_codes.values() for code in codes})
+
+        # Determine which codes to ask for
         if self.sel_domain == "":
             codes_to_prompt = allkeys
         elif self.sel_domain in domain_to_codes:
@@ -483,7 +527,8 @@ class QueryFromJson:
                             low_val = x["relatedArtifact"]["valueRange"]["low"]["value"]
                             incld_ind = x["relatedArtifact"]["valueRange"]["low"]["incld"]
                             qry_val += " and " + self.val_field + incld_dict[incld_ind] + str(low_val)
-                                       # codes
+
+                    # codes
                     qryxy_orlst = []
                     if "filter" in y: 
                         cdref = self.parse_filter(y["filter"])
@@ -514,7 +559,7 @@ class QueryFromJson:
 
                     else:
                         cdref_leaf = self.parse_concept(y["concept"])
-                        qryx_orlst.append(qry_cdtype + ''' (''' + self.cd_field + ''' in ('''+ ','.join(self.add_quote(cdref_leaf)) + ''')''' + qry_val + ''')''')
+                        qryx_orlst.append(qry_cdtype + self.cd_field + ''' in ('''+ ','.join(self.add_quote(cdref_leaf)) + ''')''' + qry_val)
 
                 else: 
                     pass
@@ -531,14 +576,17 @@ class QueryFromJson:
         for k,v in qry_dict.items():
             if len(self.sel_keys) == 0 or k in self.sel_keys:
                 nondate_fields = self.other_fields + [self.cd_field]+([self.cdtype_field] if self.cdtype_field else ["'"+self.cd_field+"'"])
+                if len(self.date_fields) > 1:
+                    date_field_func = "coalesce(" + ','.join(self.date_fields) + ")"
+                else:
+                    date_field_func = self.date_fields[0]
                 selqry_lst.append('''
                     select ''' + ','.join(nondate_fields) + 
-                        " ,coalesce(" + ','.join(self.date_fields) + ") as CD_DATE" + 
+                        " ," + date_field_func + " as CD_DATE" + 
                         " ,'"+ k +"' as CD_GRP" '''
                     from '''+ self.srctbl_name +'''
                     where ('''+ v +''')
                 ''')
         complt_qry = ' union all '.join(selqry_lst)
         return(complt_qry)
-
 

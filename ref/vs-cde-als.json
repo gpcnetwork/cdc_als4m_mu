@@ -3248,7 +3248,7 @@
         "compose": {
             "include": [
                 {
-                    "system": "cmsSpecialty",
+                    "system": "cms",
                     "concept": [
                         {
                             "code": "13",
@@ -3257,7 +3257,7 @@
                     ]
                 },
                 {
-                    "system": "hcpt",
+                    "system": "nucc",
                     "concept": [
                         {
                             "code": "2084N0008X",

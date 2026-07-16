@@ -1,300 +1,272 @@
+import logging
 import os
 from snowflake.snowpark import Session
 from snowflake.snowpark.functions import (
     col,
+    count,
     datediff,
+    listagg,
     lit,
+    max as s_max,
     min as s_min,
+    regexp_replace,
     row_number,
-    to_date,
     when,
+    count_distinct,
+    concat
 )
 from snowflake.snowpark.window import Window
-
 from config import env, conn
 
+logger = logging.getLogger(__name__)
 
-def _get_session() -> Session:
-    env.load_env()
-    connect_params = conn.load_snowcfg("DEID")
-    session = conn.get_snow_conn(connect_params)
-    session.use_database(os.environ["DEID_SNOW_DATABASE"])
-    session.use_schema("SX_CISTEM2")
-    return session
-
-
-def _ktx_idx(log_tbl_dxpx):
-    w = Window.partition_by(col("PATID")).order_by(col("CD_DATE"))
+def _build_log_uniq(session, log_tbl):
+    phemap = session.create_dataframe(
+        [
+            ("ALS","DX"),
+            ("riluzole","RX"),
+            ("edaravone","RX"),
+            ("tofersen","RX")
+        ],
+        schema = ["PHE_TYPE","PHE_GRP"]
+    )
+    log_tbl = log_tbl.join(phemap, ["PHE_TYPE"], how="inner")
     return (
-        log_tbl_dxpx.filter(col("PHE_TYPE").isin(["KTx"]))
-        .filter(col("ENC_TYPE").isin(["EI", "IP"]))
-        .filter(
-            (col("CD_DATE") >= to_date(lit("2014-01-01")))
-            & (col("CD_DATE") <= to_date(lit("2023-12-31")))
-        )
-        .with_column("rn", row_number().over(w))
-        .filter(col("rn") == 1)
-        .with_column_renamed("CD_DATE", "KTX_DATE1")
-        .select("PATID", "KTX_DATE1", "SITE")
+        log_tbl
+            .select("PATID", "PHE_TYPE", "PHE_GRP", "CD_DATE", "SITE")
+            .drop_duplicates()
     )
 
-
-def _nodat(log_tbl_dxpx, ktx_idx):
-    dm_idx = (
-        log_tbl_dxpx.filter(col("PHE_TYPE").isin(["T2DM"]))
-        .filter(
-            (col("CD_DATE") >= to_date(lit("2014-01-01")))
-            & (col("CD_DATE") <= to_date(lit("2023-12-31")))
-        )
-        .group_by(col("PATID"))
-        .agg(s_min(col("CD_DATE")).alias("DM_DATE1"))
-    )
-
+def _build_init_dx(log_uniq):
+    w_patid = Window.partition_by(col("PATID"))
     return (
-        ktx_idx.join(dm_idx, ktx_idx["PATID"] == dm_idx["PATID"], "inner")
-        .filter(dm_idx["DM_DATE1"] > ktx_idx["KTX_DATE1"])
+        log_uniq
+        .filter(col("PHE_TYPE") == "ALS")
+        .filter(col("CD_DATE").is_not_null())
+        .with_column(
+            "ALS1DX_DATE",
+            s_min(col("CD_DATE")).over(w_patid),
+        )
+        .filter(col("CD_DATE") == col("ALS1DX_DATE"))
         .select(
-            ktx_idx["PATID"].alias("PATID"),
-            dm_idx["DM_DATE1"].alias("DM_DATE1"),
-            datediff("day", ktx_idx["KTX_DATE1"], dm_idx["DM_DATE1"]).alias(
-                "DAYS_TO_NODAT"
-            ),
+            col("PATID").alias("PATID"),
+            col("ALS1DX_DATE").alias("ALS1DX_DATE"),
+            col("SITE").alias("INDEX_SRC")
         )
+        .distinct()
     )
 
+def _build_als_pt(log_uniq):
+    """
+    Build one ALS summary row per patient.
 
-def _mal_ae(log_tbl_dxpx, ktx_idx):
-    mal_idx = (
-        log_tbl_dxpx.filter(col("PHE_TYPE").isin(["MAL"]))
-        .filter(
-            (col("CD_DATE") >= to_date(lit("2014-01-01")))
-            & (col("CD_DATE") <= to_date(lit("2023-12-31")))
-        )
-        .group_by(col("PATID"))
-        .agg(s_min(col("CD_DATE")).alias("MAL_DATE1"))
-    )
+    Output includes:
+      - earliest event type and date
+      - total distinct event types
+      - total distinct event dates
+      - number of distinct dates for the earliest event type
+      - compact event summary string, such as DX3|MED2
+    """
 
-    return (
-        ktx_idx.join(mal_idx, ktx_idx["PATID"] == mal_idx["PATID"])
-        .filter(mal_idx["MAL_DATE1"] > ktx_idx["KTX_DATE1"])
+    base = (
+        log_uniq
         .select(
-            ktx_idx["PATID"].alias("PATID"),
-            mal_idx["MAL_DATE1"].alias("MAL_DATE1"),
-            datediff("day", ktx_idx["KTX_DATE1"], mal_idx["MAL_DATE1"]).alias(
-                "DAYS_TO_MAL"
-            ),
+            col("PATID"),
+            col("PHE_TYPE"),
+            col("CD_DATE").cast("DATE").alias("CD_DATE"),
         )
+        .filter(col("PATID").is_not_null())
+        .filter(col("PHE_TYPE").is_not_null())
+        .filter(col("CD_DATE").is_not_null())
+        .distinct()
     )
 
+    w_patid = Window.partition_by("PATID")
+    w_patid_type = Window.partition_by( "PATID","PHE_TYPE")
+    w_patid_order = Window.partition_by("PATID").order_by(col("CD_DATE"),col("PHE_TYPE"))
 
-def _mi_ae(log_tbl_dxpx, ktx_idx):
-    mi_any = (
-        log_tbl_dxpx.filter(col("PHE_TYPE").isin(["MI"]))
-        .filter(
-            (col("CD_DATE") >= to_date(lit("2014-01-01")))
-            & (col("CD_DATE") <= to_date(lit("2023-12-31")))
+    event_rows = (
+        base
+        .with_column(
+            "distinct_event_cnt",
+            count_distinct(col("PHE_TYPE")).over(w_patid),
         )
-        .filter(col("ENC_TYPE").isin(["EI", "IP"]))
+        .with_column(
+            "distinct_date_cnt",
+            count_distinct(col("CD_DATE")).over(w_patid),
+        )
+        .with_column(
+            "event_distinct_date_cnt",
+            count_distinct(col("CD_DATE")).over(w_patid_type),
+        )
+        .with_column(
+            "rn",
+            row_number().over(w_patid_order),
+        )
+        .alias("events")
     )
 
-    return (
-        ktx_idx.join(mi_any, ktx_idx["PATID"] == mi_any["PATID"])
-        .filter(mi_any["CD_DATE"] > ktx_idx["KTX_DATE1"])
-        .select(
-            ktx_idx["PATID"].alias("PATID"),
-            mi_any["CD_DATE"].alias("MI_DATE1"),
-            datediff("day", ktx_idx["KTX_DATE1"], mi_any["CD_DATE"]).alias(
-                "DAYS_TO_MI"
-            ),
-        )
-        .group_by(ktx_idx["PATID"])
-        .agg(
-            s_min(mi_any["CD_DATE"]).alias("MI_DATE1"),
-            s_min(col("DAYS_TO_MI")).alias("DAYS_TO_MI"),
-        )
-    )
-
-
-def _ar_ae(log_tbl_dxpx, log_tbl_rx, ktx_idx):
-    biopsy_idx = (
-        ktx_idx.join(
-            log_tbl_dxpx,
-            (ktx_idx["PATID"] == log_tbl_dxpx["PATID"])
-            & (log_tbl_dxpx["PHE_TYPE"]).isin(["RenalBiopsy"])
-            & (log_tbl_dxpx["CD_DATE"] >= to_date(lit("2014-01-01")))
-            & (log_tbl_dxpx["CD_DATE"] <= to_date(lit("2023-12-31")))
-            & (
-                datediff("day", ktx_idx["KTX_DATE1"], log_tbl_dxpx["CD_DATE"])
-            ).between(0, 180),
-            join_type="inner",
-        )
-        .group_by(ktx_idx["PATID"], ktx_idx["KTX_DATE1"])
-        .agg(s_min(log_tbl_dxpx["CD_DATE"]).alias("CD_DATE"))
-        .select(
-            ktx_idx["PATID"].alias("PATID"),
-            log_tbl_dxpx["CD_DATE"].alias("RBX_DATE1"),
-            datediff("day", ktx_idx["KTX_DATE1"], log_tbl_dxpx["CD_DATE"]).alias(
-                "DAYS_TO_RBX"
-            ),
-        )
-    )
-
-    return (
-        biopsy_idx.join(
-            log_tbl_rx,
-            (biopsy_idx["PATID"] == log_tbl_rx["PATID"])
-            & (
-                datediff("day", biopsy_idx["RBX_DATE1"], log_tbl_rx["CD_DATE"])
-            ).between(0, 7),
+    # Retain only patients identified by _build_init_dx().
+    init_dx = _build_init_dx(log_uniq)
+    grp_by_type = (
+        event_rows
+        .join(
+            init_dx,
+            event_rows["PATID"] == init_dx["PATID"],
             "inner",
         )
-        .group_by(
-            biopsy_idx["PATID"],
-            biopsy_idx["RBX_DATE1"],
-            biopsy_idx["DAYS_TO_RBX"],
-        )
-        .agg(s_min(log_tbl_rx["CD_DATE"]).alias("ANTIREJ_DATE1"))
         .select(
-            biopsy_idx["PATID"].alias("PATID"),
-            biopsy_idx["RBX_DATE1"].alias("RBX_DATE1"),
-            biopsy_idx["DAYS_TO_RBX"].alias("DAYS_TO_RBX"),
-            col("ANTIREJ_DATE1"),
+            event_rows["PATID"].alias("PATID"),
+            init_dx["ALS1DX_DATE"].alias("ALS1DX_DATE"),
+            init_dx["INDEX_SRC"].alias("INDEX_SRC"),
+            event_rows["PHE_TYPE"].alias("PHE_TYPE"),
+            event_rows["CD_DATE"].alias("CD_DATE"),
+            event_rows["distinct_event_cnt"].alias("distinct_event_cnt"),
+            event_rows["distinct_date_cnt"].alias("distinct_date_cnt"),
+            event_rows["event_distinct_date_cnt"].alias("event_distinct_date_cnt"),
+            event_rows["rn"].alias("rn"),
         )
+        .alias("grp")
     )
 
-
-def _build_final(session: Session, ktx_idx, nodat, mal_ae, mi_ae, ar_ae):
-    k = ktx_idx.alias("k")
-    n = nodat.alias("n")
-    c = mal_ae.alias("c")
-    m = mi_ae.alias("m")
-    a = ar_ae.alias("a")
-    p = session.table("PAT_TABLE1")
-
-    jn1 = (
-        k.join(n, k["PATID"] == n["PATID"], "left")
+    # Generate exactly one row per patient/event type before LISTAGG.
+    event_type_summary = (
+        grp_by_type
         .select(
-            k["PATID"].alias("PATID"),
-            k["KTX_DATE1"].alias("KTX_DATE1"),
-            k["SITE"].alias("KTX_SITE"),
-            n["DM_DATE1"].alias("DM_DATE1"),
-            n["DAYS_TO_NODAT"].alias("DAYS_TO_NODAT"),
+            col("PATID"),
+            col("PHE_TYPE"),
+            col("event_distinct_date_cnt"),
         )
-        .with_column("NODAT_IND", when(col("DM_DATE1").is_not_null(), 1).otherwise(0))
-    )
-    jn2 = (
-        jn1.join(m, jn1["PATID"] == m["PATID"], "left")
-        .select(
-            jn1["PATID"],
-            jn1["KTX_DATE1"],
-            jn1["KTX_SITE"],
-            jn1["DM_DATE1"],
-            jn1["DAYS_TO_NODAT"],
-            jn1["NODAT_IND"],
-            m["MI_DATE1"],
-            m["DAYS_TO_MI"],
-        )
-        .with_column("MI_IND", when(col("MI_DATE1").is_not_null(), 1).otherwise(0))
-    )
-    jn3 = (
-        jn2.join(c, jn2["PATID"] == c["PATID"], "left")
-        .select(
-            jn2["PATID"],
-            jn2["KTX_DATE1"],
-            jn2["KTX_SITE"],
-            jn2["DM_DATE1"],
-            jn2["DAYS_TO_NODAT"],
-            jn2["NODAT_IND"],
-            jn2["MI_DATE1"],
-            jn2["DAYS_TO_MI"],
-            jn2["MI_IND"],
-            c["MAL_DATE1"],
-            c["DAYS_TO_MAL"],
-        )
-        .with_column("MAL_IND", when(col("MAL_DATE1").is_not_null(), 1).otherwise(0))
-    )
-    jn4 = (
-        jn3.join(a, jn3["PATID"] == a["PATID"], "left")
-        .select(
-            jn3["PATID"],
-            jn3["KTX_DATE1"],
-            jn3["KTX_SITE"],
-            jn3["DM_DATE1"],
-            jn3["DAYS_TO_NODAT"],
-            jn3["NODAT_IND"],
-            jn3["MI_DATE1"],
-            jn3["DAYS_TO_MI"],
-            jn3["MI_IND"],
-            jn3["MAL_DATE1"],
-            jn3["DAYS_TO_MAL"],
-            jn3["MAL_IND"],
-            a["RBX_DATE1"],
-            a["DAYS_TO_RBX"],
-            a["ANTIREJ_DATE1"],
-            datediff("day", a["RBX_DATE1"], a["ANTIREJ_DATE1"]).alias(
-                "DAYS_RBX_TO_ANTIREJ"
+        .distinct()
+        .with_column(
+            "event_summary",
+            concat(
+                col("PHE_TYPE"),
+                col("event_distinct_date_cnt").cast("STRING"),
             ),
         )
-        .with_column("AR_IND", when(col("RBX_DATE1").is_not_null(), 1).otherwise(0))
+    )
+
+    event_str_df = (
+        event_type_summary
+        .group_by("PATID")
+        .agg(
+            listagg(col("event_summary"),"|")
+            .within_group(col("event_summary"))
+            .alias("event_str")
+        )
+        .alias("event_summary")
+    )
+
+    als_elig = (
+        grp_by_type
+        .filter(col("rn") == 1)
+        .select(
+            col("PATID"),
+            col("ALS1DX_DATE"),
+            col("INDEX_SRC"),
+            col("PHE_TYPE").alias("PHE1_TYPE"),
+            col("CD_DATE").alias("PHE1_DATE"),
+            col("distinct_event_cnt"),
+            col("distinct_date_cnt"),
+            col("event_distinct_date_cnt"),
+        )
+        .filter(col("distinct_date_cnt") > 1)
+        .alias("als_elig")
     )
 
     return (
-        jn4.join(p, jn4["PATID"] == p["PATID"], "inner")
+        als_elig
+        .join(
+            event_str_df,
+            als_elig["PATID"] == event_str_df["PATID"],
+            "inner",
+        )
         .select(
-            jn4["PATID"].alias("PATID"),
-            jn4["KTX_DATE1"].alias("INDEX_DATE"),
-            jn4["KTX_SITE"],
-            jn4["DM_DATE1"],
-            jn4["DAYS_TO_NODAT"],
-            jn4["NODAT_IND"],
-            jn4["MI_DATE1"],
-            jn4["DAYS_TO_MI"],
-            jn4["MI_IND"],
-            jn4["MAL_DATE1"],
-            jn4["DAYS_TO_MAL"],
-            jn4["MAL_IND"],
-            jn4["RBX_DATE1"],
-            jn4["DAYS_TO_RBX"],
-            jn4["ANTIREJ_DATE1"],
-            jn4["DAYS_RBX_TO_ANTIREJ"],
-            jn4["AR_IND"],
-            p["SEX"],
-            p["RACE"],
-            p["HISPANIC"],
-            datediff("year", p["BIRTH_DATE"], jn4["KTX_DATE1"]).alias("AGE_AT_KTX"),
-            p["DEATH_IND"],
-            p["CENSOR_DATE"],
-            datediff("day", jn4["KTX_DATE1"], p["CENSOR_DATE"]).alias(
-                "DAYS_TO_CENSOR"
-            ),
-            p["INDEX_SRC"].alias("SRC_SITE"),
+            als_elig["PATID"].alias("PATID"),
+            als_elig["ALS1DX_DATE"],
+            als_elig["INDEX_SRC"],
+            als_elig["PHE1_TYPE"],
+            als_elig["PHE1_DATE"],
+            als_elig["distinct_event_cnt"],
+            als_elig["distinct_date_cnt"],
+            als_elig["event_distinct_date_cnt"],
+            event_str_df["event_str"],
         )
     )
 
 
-def build_ktx_tbl1(session: Session):
-    log_tbl_dxpx = session.table("KTX_DXPX_LONG")
-    log_tbl_rx = session.table("KTX_RX_LONG")
+def build_als_case_table(session: Session):
+    """
+    Build ALS case table
+    """
+    log_tbl = (
+        session.table("ALS_DXRXPX_LONG")
+        .filter(col("SITE") != 'CMS') # remove CMS
+    )
+    log_uniq = _build_log_uniq(session, log_tbl)
+    als_tbl1 = _build_als_pt(log_uniq)
+    w_patid = Window.partition_by("PATID").order_by(col("ALS1DX_DATE"))
 
-    ktx_idx = _ktx_idx(log_tbl_dxpx)
-    nodat = _nodat(log_tbl_dxpx, ktx_idx)
-    mal_ae = _mal_ae(log_tbl_dxpx, ktx_idx)
-    mi_ae = _mi_ae(log_tbl_dxpx, ktx_idx)
-    ar_ae = _ar_ae(log_tbl_dxpx, log_tbl_rx, ktx_idx)
-
-    nodat.write.mode("overwrite").save_as_table("NODAT")
-    mal_ae.write.mode("overwrite").save_as_table("MAL_AE")
-    mi_ae.write.mode("overwrite").save_as_table("MI_AE")
-    ar_ae.write.mode("overwrite").save_as_table("AR_AE")
-
-    final = _build_final(session, ktx_idx, nodat, mal_ae, mi_ae, ar_ae)
-    final.write.mode("overwrite").save_as_table("KTX_TBL1")
+    # ALS case table
+    als_case_table1 = (
+        als_tbl1
+        .with_column("rn", row_number().over(w_patid))
+        .filter(col("rn") == 1)
+        .select(
+            als_tbl1["PATID"].alias("PATID"),
+            als_tbl1["ALS1DX_DATE"],
+            als_tbl1["INDEX_SRC"],
+            als_tbl1["PHE1_TYPE"],
+            als_tbl1["PHE1_DATE"],
+            als_tbl1["distinct_event_cnt"],
+            als_tbl1["distinct_date_cnt"],
+            als_tbl1["event_distinct_date_cnt"],
+            als_tbl1["event_str"],
+        )
+    )
+    als_case_table1.write.mode("overwrite").save_as_table("ALS_CASE")
+    logger.info("✅ ALS_CASE table created with {} rows.".format(als_case_table1.count()))
 
 
 def main():
-    session = _get_session()
-    print(session.sql("SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_DATABASE()").collect())
-    build_ktx_tbl1(session)
+    env.load_env()
+    connect_params = conn.load_snowcfg("ID")
+    session = conn.get_snow_conn(connect_params)
+    session.use_database(os.environ["ID_SNOW_DATABASE"])
+    session.use_schema("SX_ALS_GPC")
+
+    print(session.sql("SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_DATABASE(), CURRENT_WAREHOUSE()").collect())
+    build_als_case_table(session)
+
+    # attach demographic info
+    pat_tbl1 = session.table("PAT_TABLE1")
+    als_case_table1 = session.table("ALS_CASE")
+    als_w_demo = (
+        als_case_table1.join(
+            pat_tbl1, als_case_table1["PATID"] == pat_tbl1["PATID"], 
+            "inner"
+        )
+        .select(
+            als_case_table1["PATID"].alias("PATID"),
+            als_case_table1["ALS1DX_DATE"].alias("ALS1DX_DATE"),
+            als_case_table1["INDEX_SRC"].alias("INDEX_SRC"),
+            als_case_table1["event_str"].alias("ALS_CPHETY"),
+            pat_tbl1["index_date"].alias("ENTRY_DATE"),
+            pat_tbl1["age_at_index"].alias("AGE_AT_ENTRY"),
+            pat_tbl1["agegrp_at_index"].alias("AGEGRP_AT_ENTRY"),
+            pat_tbl1["sex"].alias("SEX"),
+            pat_tbl1["race"].alias("RACE"),
+            pat_tbl1["hispanic"].alias("HISPANIC"),
+            pat_tbl1["index_enc_type"].alias("INDEX_ENC_TYPE"),
+            pat_tbl1["censor_date"].alias("CENSOR_DATE"),
+            pat_tbl1["censor_year"].alias("CENSOR_YEAR"),
+            pat_tbl1["death_ind"].alias("DEATH_IND"),
+            pat_tbl1["src"].alias("SRC"),
+        )
+    )
+    als_w_demo.write.mode("overwrite").save_as_table("ALS_CASE_TABLE1")
+    logger.info("✅ ALS_CASE_TABLE1 table created with {} rows.".format(als_w_demo.count()))
 
 if __name__ == "__main__":
     main()
